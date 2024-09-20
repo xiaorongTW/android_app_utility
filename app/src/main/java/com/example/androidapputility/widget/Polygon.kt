@@ -1,4 +1,4 @@
-package com.example.androidapputility.utility
+package com.example.androidapputility.widget
 
 import android.graphics.Point
 import android.graphics.PointF
