@@ -3,7 +3,9 @@ package com.example.androidapputility
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import com.example.androidapputility.databinding.ActivityLauncherBinding
+import com.example.androidapputility.widget.BaseDialogFragment
 import com.example.androidapputility.widget.waiting.WaitingCursorFragment
 
 class LauncherActivity : BaseActivity() {
@@ -46,6 +48,41 @@ class LauncherActivity : BaseActivity() {
         intent.putExtra(MediaPickerActivity.BUNDLE_PARAM_INTENT_TIME, System.currentTimeMillis())
 //        startActivity(intent)
         startActivityForResult(intent, INTENT_PICKER_REQEST_CODE)
+    }
+
+    private fun showBaseDialogFragment() {
+        val dialog = BaseDialogFragment().apply {
+            setTitle("Hello BaseDialogFragment")
+            setMessage("This is a BaseDialogFragment.\nClick OK, NO or Cancel to close it.")
+            setPositiveButtonText("OK")
+            setNegativeButtonText("NO")
+            setNeutralButtonText("Cancel")
+            setOnClickListener(object : BaseDialogFragment.OnClickListener {
+                private var clickWhat: String? = null
+
+                override fun onPositive() {
+                    clickWhat = "Click OK."
+                    dismiss()
+                }
+
+                override fun onNegative() {
+                    clickWhat = "Click NO."
+                    dismiss()
+                }
+
+                override fun onNeutral() {
+                    clickWhat = "Click Cancel."
+                    dismiss()
+                }
+
+                override fun onDismiss() {
+                    clickWhat?.let {
+                        Toast.makeText(requireActivity(), it, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            })
+        }
+        dialog.show(supportFragmentManager, BaseDialogFragment.TAG)
     }
 
     private fun showWaitingCursorFragment() {
