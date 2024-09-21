@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import com.example.androidapputility.databinding.ActivityLauncherBinding
+import com.example.androidapputility.widget.waiting.WaitingCursorFragment
 
 class LauncherActivity : BaseActivity() {
 
@@ -24,11 +25,6 @@ class LauncherActivity : BaseActivity() {
         initUI()
     }
 
-    override fun onResume() {
-        super.onResume()
-        showToast("Welcome to LauncherActivity!")
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -39,11 +35,9 @@ class LauncherActivity : BaseActivity() {
 
     private fun initUI() {
         binding.tvToActivity.setOnClickListener {
-            startMediaPickerActivity()
         }
 
         binding.tvToFragment.setOnClickListener {
-            showLauncherFragment()
         }
     }
 
@@ -54,15 +48,15 @@ class LauncherActivity : BaseActivity() {
         startActivityForResult(intent, INTENT_PICKER_REQEST_CODE)
     }
 
-    private fun showLauncherFragment() {
-        val launcherFragment = LauncherFragment()
+    private fun showWaitingCursorFragment() {
+        val fragment = WaitingCursorFragment()
         val fragmentTransaction = supportFragmentManager.beginTransaction()
-        fragmentTransaction.add(R.id.fragment_container, launcherFragment)
+        fragmentTransaction.add(R.id.fragment_container, fragment)
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
     }
 
-    private fun dismissLauncherFragment() {
+    private fun dismissFragment() {
         val fragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
         if (fragment != null) {
             val fragmentTransaction = supportFragmentManager.beginTransaction()
@@ -71,7 +65,7 @@ class LauncherActivity : BaseActivity() {
         }
     }
 
-    private fun hideLauncherFragment() {
+    private fun hideFragment() {
         val fragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
         if (fragment != null) {
             val fragmentTransaction = supportFragmentManager.beginTransaction()

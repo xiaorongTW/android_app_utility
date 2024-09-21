@@ -22,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="Click to start MediaPickerActivity"
+            android:text="Click to start activity"
             android:textColor="@color/black" />
 
         <TextView
@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:gravity="center"
-            android:text="Click to show LauncherFragment"
+            android:text="Click to show fragment"
             android:textColor="@color/black" />
     </LinearLayout>
 

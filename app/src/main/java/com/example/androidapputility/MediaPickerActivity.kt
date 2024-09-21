@@ -52,10 +52,4 @@ class MediaPickerActivity : BaseActivity() {
         startActivity(intent)
         finish()
     }
-
-
-    override fun onResume() {
-        super.onResume()
-        showToast("Welcome to MediaPickerActivity!")
-    }
 }

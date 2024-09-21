@@ -17,6 +17,9 @@ open class BaseFragment : Fragment() {
     }
 
     private val TAG: String = BaseFragment@ this.javaClass.simpleName
+    private lateinit var rootView: View
+
+    private val canPassThrough = false
 
     override fun onAttach(activity: Activity) {
         super.onAttach(activity)
@@ -70,6 +73,14 @@ open class BaseFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        rootView = view
+
+        if (!canPassThrough) {
+            rootView.setOnClickListener(View.OnClickListener {
+                return@OnClickListener // Block pass through behavior
+            })
+        }
+
         lifecycleMsg("onViewCreated")
     }
 
@@ -84,6 +95,16 @@ open class BaseFragment : Fragment() {
 
     fun showLongToast(message: String) {
         Toast.makeText(requireActivity(), message, Toast.LENGTH_LONG).show()
+    }
+
+    open fun close() {
+        // Method 1: Close by transaction
+        parentFragmentManager
+            .beginTransaction()
+            .remove(this).commit()
+
+        // Method 2: Close by pop back stack
+//        parentFragmentManager.popBackStack()
     }
 
     open fun checkPermission(permission: String): Boolean {
@@ -110,31 +131,26 @@ open class BaseFragment : Fragment() {
             Log.v(TAG, it)
         }
     }
-
     open fun debugMsg(msg: String?) {
         msg?.let {
             Log.d(TAG, it)
         }
     }
-
     open fun errorMsg(msg: String?) {
         msg?.let {
             Log.e(TAG, it)
         }
     }
-
     open fun infoMsg(msg: String?) {
         msg?.let {
             Log.i(TAG, it)
         }
     }
-
     open fun warningMsg(msg: String?) {
         msg?.let {
             Log.w(TAG, it)
         }
     }
-
     private fun lifecycleMsg(msg: String) {
         debugMsg("Lifecycle: $msg")
     }
