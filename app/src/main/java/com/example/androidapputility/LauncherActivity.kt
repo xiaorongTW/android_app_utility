@@ -82,32 +82,14 @@ class LauncherActivity : BaseActivity() {
                 }
             })
         }
-        dialog.show(supportFragmentManager, BaseDialogFragment.TAG)
+        dialog.show(supportFragmentManager, dialog.TAG)
     }
 
     private fun showWaitingCursorFragment() {
         val fragment = WaitingCursorFragment()
-        val fragmentTransaction = supportFragmentManager.beginTransaction()
-        fragmentTransaction.add(R.id.fragment_container, fragment)
-        fragmentTransaction.addToBackStack(null)
-        fragmentTransaction.commit()
+        if (hadFragment(fragment.TAG)) return
+
+        showFragment(fragment, fragment.TAG, R.id.full_screen_fragment_container)
     }
 
-    private fun dismissFragment() {
-        val fragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
-        if (fragment != null) {
-            val fragmentTransaction = supportFragmentManager.beginTransaction()
-            fragmentTransaction.remove(fragment)
-            fragmentTransaction.commit()
-        }
-    }
-
-    private fun hideFragment() {
-        val fragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
-        if (fragment != null) {
-            val fragmentTransaction = supportFragmentManager.beginTransaction()
-            fragmentTransaction.hide(fragment)
-            fragmentTransaction.commit()
-        }
-    }
 }

@@ -7,13 +7,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import java.security.InvalidParameterException
 
 open class BaseActivity : AppCompatActivity() {
 
     companion object {
     }
 
-    private val TAG: String = BaseActivity@ this.javaClass.simpleName
+    val TAG = BaseActivity@ this.javaClass.simpleName
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +73,49 @@ open class BaseActivity : AppCompatActivity() {
 
     fun showLongToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    open fun hadFragment(tag: String): Boolean {
+        return supportFragmentManager.findFragmentByTag(tag) != null
+    }
+
+    open fun showFragment(fragment: Fragment, tag: String, fragmentContainerId: Int) {
+        if (tag.isNullOrEmpty())
+            throw InvalidParameterException("Got invalid tag.")
+
+        supportFragmentManager.findFragmentByTag(tag)?.let {
+            if (it.isAdded) {
+                val status = if (it.isVisible) "visible" else "hidden"
+                throw RuntimeException("Fragment: $tag was added, status: $status.")
+            } else
+                throw RuntimeException("Fragment: $tag was lost in fragment manager.")
+        }
+
+        supportFragmentManager.beginTransaction().let {
+            it.add(fragmentContainerId, fragment, tag)
+            it.addToBackStack(null)
+            it.commit()
+        }
+    }
+
+    open fun dismissFragment(tag: String?) {
+        if (tag.isNullOrEmpty()) return
+
+        supportFragmentManager.findFragmentByTag(tag)?.let {
+            val fragmentTransaction = supportFragmentManager.beginTransaction()
+            fragmentTransaction.remove(it)
+            fragmentTransaction.commit()
+        }
+    }
+
+    open fun hideFragment(tag: String?) {
+        if (tag.isNullOrEmpty()) return
+
+        supportFragmentManager.findFragmentByTag(tag)?.let {
+            val fragmentTransaction = supportFragmentManager.beginTransaction()
+            fragmentTransaction.hide(it)
+            fragmentTransaction.commit()
+        }
     }
 
     open fun checkPermission(permission: String): Boolean {

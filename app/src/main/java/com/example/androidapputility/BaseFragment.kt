@@ -16,7 +16,7 @@ open class BaseFragment : Fragment() {
 
     }
 
-    private val TAG: String = BaseFragment@ this.javaClass.simpleName
+    val TAG: String = BaseFragment@ this.javaClass.simpleName
     private lateinit var rootView: View
 
     private val canPassThrough = false

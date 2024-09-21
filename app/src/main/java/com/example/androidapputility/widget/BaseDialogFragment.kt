@@ -9,9 +9,9 @@ import androidx.fragment.app.DialogFragment
 open class BaseDialogFragment : DialogFragment() {
 
     companion object {
-        val TAG = BaseDialogFragment::class.java.simpleName
     }
 
+    val TAG: String = BaseDialogFragment@ this.javaClass.simpleName
     private lateinit var title: String
     private lateinit var message: String
     private lateinit var textPositive: String

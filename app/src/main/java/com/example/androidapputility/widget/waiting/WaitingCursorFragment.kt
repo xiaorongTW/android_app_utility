@@ -16,6 +16,9 @@ import com.example.androidapputility.R
 
 class WaitingCursorFragment : BaseFragment() {
 
+    companion object {
+    }
+
     private lateinit var ivWaitingCursor: ImageView
     private var useAnimator = true
     private var animator: Animator? = null
@@ -38,7 +41,7 @@ class WaitingCursorFragment : BaseFragment() {
 
         val clickToClose = false // Enable to test
         if (clickToClose) {
-            ivWaitingCursor.setOnClickListener(object: View.OnClickListener {
+            ivWaitingCursor.setOnClickListener(object : View.OnClickListener {
                 override fun onClick(p0: View?) {
                     dismiss()
                 }
