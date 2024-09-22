@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_fragmemt">
+
+    <HorizontalScrollView
+        android:id="@+id/degree_ruler_scroller"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fadingEdgeLength="36dp"
+        android:orientation="horizontal"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.example.androidapputility.widget.DegreeRulerView
+                android:id="@+id/degree_ruler_view"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
+
+    <RelativeLayout
+        android:id="@+id/degree_pointer_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/degree_pointer_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:textColor="#25D7FE" />
+
+        <View
+            android:id="@+id/degree_pointer_view"
+            android:layout_width="2dp"
+            android:layout_height="16dp"
+            android:layout_centerHorizontal="true"
+            android:background="#25D7FE" />
+    </RelativeLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

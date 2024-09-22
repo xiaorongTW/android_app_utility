@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import com.example.androidapputility.databinding.ActivityLauncherBinding
+import com.example.androidapputility.testbed.DegreeRulerFragment
 import com.example.androidapputility.widget.BaseDialogFragment
 import com.example.androidapputility.widget.waiting.WaitingCursorFragment
 
@@ -90,6 +91,13 @@ class LauncherActivity : BaseActivity() {
         if (hadFragment(fragment.TAG)) return
 
         showFragment(fragment, fragment.TAG, R.id.full_screen_fragment_container)
+    }
+
+    private fun showDegreeRulerFragment() {
+        val fragment = DegreeRulerFragment()
+        if (hadFragment(fragment.TAG)) return
+
+        showFragment(fragment, fragment.TAG, R.id.bottom_fragment_container)
     }
 
 }
