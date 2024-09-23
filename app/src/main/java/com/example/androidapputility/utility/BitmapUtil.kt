@@ -13,10 +13,15 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.provider.MediaStore
+import android.renderscript.Allocation
+import android.renderscript.Element
+import android.renderscript.RenderScript
+import android.renderscript.ScriptIntrinsicBlur
 import android.util.Size
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.io.OutputStream
 
 class BitmapUtil {
@@ -30,6 +35,15 @@ class BitmapUtil {
                 e.printStackTrace()
                 null
             }
+        }
+
+        fun fromRaw(context: Context, id: Int): Bitmap {
+            val inputStream: InputStream = context.resources.openRawResource(id)
+            return BitmapFactory.decodeStream(inputStream)
+        }
+
+        fun toDrawable(context: Context, bitmap: Bitmap): Drawable {
+            return BitmapDrawable(context.resources, bitmap)
         }
 
         @Throws(IOException::class)
@@ -139,6 +153,21 @@ class BitmapUtil {
                 )
             }
             return croppedBitmap
+        }
+
+        fun blurBitmap(context: Context, bitmap: Bitmap, radius: Float): Bitmap {
+            val renderScript = RenderScript.create(context)
+            val input = Allocation.createFromBitmap(renderScript, bitmap)
+            val output = Allocation.createTyped(renderScript, input.type)
+            val script = ScriptIntrinsicBlur.create(renderScript, Element.U8_4(renderScript))
+
+            script.setRadius(radius)
+            script.setInput(input)
+            script.forEach(output)
+            output.copyTo(bitmap)
+
+            renderScript.destroy()
+            return bitmap
         }
     }
 }
