@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Matrix
+import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.BitmapDrawable
@@ -44,6 +45,17 @@ class BitmapUtil {
 
         fun toDrawable(context: Context, bitmap: Bitmap): Drawable {
             return BitmapDrawable(context.resources, bitmap)
+        }
+
+        fun fromColor(width: Int, height: Int, color: Int): Bitmap {
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            val paint = Paint().apply {
+                this.color = color
+                this.style = Paint.Style.FILL
+            }
+            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+            return bitmap
         }
 
         @Throws(IOException::class)
@@ -168,6 +180,18 @@ class BitmapUtil {
 
             renderScript.destroy()
             return bitmap
+        }
+
+        fun updateAlpha(bitmap: Bitmap, alpha: Int): Bitmap {
+            val newBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config)
+            val canvas = Canvas(newBitmap)
+
+            val paint = Paint()
+            paint.alpha = alpha
+
+            canvas.drawBitmap(bitmap, 0f, 0f, paint)
+
+            return newBitmap
         }
     }
 }
