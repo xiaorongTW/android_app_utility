@@ -38,9 +38,13 @@ class LauncherActivity : BaseActivity() {
 
     private fun initUI() {
         binding.tvToActivity.setOnClickListener {
+            //startMediaPickerActivity()
         }
 
         binding.tvToFragment.setOnClickListener {
+            //showBaseDialogFragment()
+            //showWaitingCursorFragment()
+            //showDegreeRulerFragment()
         }
     }
 
