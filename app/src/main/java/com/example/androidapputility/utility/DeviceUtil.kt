@@ -36,5 +36,35 @@ class DeviceUtil {
 
             return isPhone && isScreenSizeMobile
         }
+
+        fun getDeviceBuildInfo(): HashMap<String, String> {
+            val buildInfo = HashMap<String, String>().apply {
+                put("BRAND", Build.BRAND)
+                put("BOARD", Build.BOARD)
+                put("DEVICE", Build.DEVICE)
+                put("HARDWARE", Build.HARDWARE)
+                put("MODEL", Build.MODEL)
+                put("MANUFACTURER", Build.MANUFACTURER)
+                put("OS_VER", Build.VERSION.RELEASE)
+                put("PRODUCT", Build.PRODUCT)
+                put("VERSION.RELEASE", Build.VERSION.RELEASE)           // Android version
+                put("VERSION.SDK_INT", "" + Build.VERSION.SDK_INT)      // SDK version
+                put("VERSION.CODENAME", "" + Build.VERSION.CODENAME)    // Version name
+                put(
+                    "VERSION.CODENAME",
+                    Build.SUPPORTED_ABIS.joinToString(", ")
+                ) // Support cpu architecture
+                put(
+                    "VERSION.CODENAME",
+                    Build.SUPPORTED_32_BIT_ABIS.joinToString(", ")
+                ) // Support 32-bit architecture
+                put(
+                    "VERSION.CODENAME",
+                    Build.SUPPORTED_64_BIT_ABIS.joinToString(", ")
+                ) // Support 64-bit architecture
+            }
+            return buildInfo
+        }
+
     }
 }

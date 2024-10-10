@@ -20,6 +20,7 @@ import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.ViewTreeObserver
 import android.widget.RelativeLayout
+import android.widget.SeekBar
 import androidx.annotation.DimenRes
 import java.lang.reflect.InvocationTargetException
 
@@ -48,15 +49,15 @@ class ViewUtil {
             return Size(view.measuredWidth, view.measuredHeight)
         }
 
-        fun updateLayoutWidth(view: View, width: Int) {
-            updateLayoutSize(view, width, null)
+        fun updateWidth(view: View, width: Int) {
+            updateSize(view, width, null)
         }
 
-        fun updateLayoutHeight(view: View, height: Int) {
-            updateLayoutSize(view, null, height)
+        fun updateHeight(view: View, height: Int) {
+            updateSize(view, null, height)
         }
 
-        fun updateLayoutSize(view: View, width: Int?, height: Int?) {
+        fun updateSize(view: View, width: Int?, height: Int?) {
             val params = view.layoutParams
             width?.let {
                 params.width = it
@@ -67,7 +68,7 @@ class ViewUtil {
             view.layoutParams = params
         }
 
-        fun updateLayoutMargin(view: View, left: Int?, top: Int?, right: Int?, bottom: Int?) {
+        fun updateMargin(view: View, left: Int?, top: Int?, right: Int?, bottom: Int?) {
             if (view !is RelativeLayout) {
                 return
             }
@@ -240,6 +241,18 @@ class ViewUtil {
                 view.background = BitmapDrawable(view.context.resources, viewBitmap)
                 renderScript.destroy()
             }
+        }
+
+        fun getSeekbarThumbScreenRect(s: SeekBar): Rect {
+            val thumb = s.thumb
+            val bounds = thumb.bounds
+
+            val pos = IntArray(2)
+            s.getLocationOnScreen(pos)
+
+            val left = pos[0] + bounds.left
+            val top = pos[1] + bounds.top
+            return Rect(left, top, left + bounds.width(), top + bounds.height())
         }
     }
 }
