@@ -1,22 +1,47 @@
 package com.example.androidapputility
 
+import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
+import android.os.PowerManager
+import android.os.PowerManager.WakeLock
 import android.util.Log
+import android.view.KeyEvent
+import android.view.MotionEvent
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.example.androidapputility.utility.DeviceUtil
 import java.security.InvalidParameterException
 
-open class BaseActivity : AppCompatActivity() {
+abstract class BaseActivity : AppCompatActivity() {
 
     companion object {
     }
 
-    val TAG = BaseActivity@ this.javaClass.simpleName
+    abstract fun getContentActivityResult(uri: Uri?)
+    abstract fun getMultipleContentsActivityResult(uriList: List<Uri>?)
 
+    private val TAG = BaseActivity@ this.javaClass.simpleName
+
+    private var powerWakeLock: WakeLock? = null
+
+    open val getContentActivityResultLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            getContentActivityResult(uri)
+        }
+    open val getMultipleContentsActivityResultLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uriList: List<Uri>? ->
+            getMultipleContentsActivityResult(uriList)
+        }
+
+    //  ==== Lifecycle =============================================================================
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         lifecycleMsg("onCreate")
@@ -59,6 +84,8 @@ open class BaseActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        getContentActivityResultLauncher.unregister()
+        lockPowerWake(false)
         lifecycleMsg("onDestroy")
     }
 
@@ -67,16 +94,41 @@ open class BaseActivity : AppCompatActivity() {
         lifecycleMsg("onSaveInstanceState")
     }
 
-    fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        lifecycleMsg("onRestoreInstanceState")
     }
 
-    fun showLongToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        lifecycleMsg("onActivityResult")
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        lifecycleMsg("onBackPressed")
+    }
+
+    override fun finish() {
+        super.finish()
+        lifecycleMsg("finish")
+    }
+
+    //  ==== Fragment ==============================================================================
+    open fun findFragment(id: Int): Fragment? {
+        return supportFragmentManager.findFragmentById(id)
+    }
+
+    open fun hadFragment(id: Int): Boolean {
+        return findFragment(id) != null
+    }
+
+    open fun findFragment(tag: String): Fragment? {
+        return supportFragmentManager.findFragmentByTag(tag)
     }
 
     open fun hadFragment(tag: String): Boolean {
-        return supportFragmentManager.findFragmentByTag(tag) != null
+        return findFragment(tag) != null
     }
 
     open fun showFragment(fragment: Fragment, tag: String, fragmentContainerId: Int) {
@@ -118,6 +170,7 @@ open class BaseActivity : AppCompatActivity() {
         }
     }
 
+    //  ==== Permission ============================================================================
     open fun checkPermission(permission: String): Boolean {
         return ContextCompat.checkSelfPermission(
             this,
@@ -135,6 +188,101 @@ open class BaseActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
+    //  ==== Keyboard ==============================================================================
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        return super.onKeyUp(keyCode, event)
+    }
+
+    override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean {
+        return super.onKeyLongPress(keyCode, event)
+    }
+
+    // ==== Touch ==================================================================================
+    override fun onGenericMotionEvent(event: MotionEvent?): Boolean {
+        return super.onGenericMotionEvent(event)
+    }
+
+    //  ==== Power Management ======================================================================
+    open fun lockPowerWake(lock: Boolean) {
+        if (lock) {
+            if (powerWakeLock == null) {
+                @SuppressWarnings("deprecation")
+                val lockLevel = (PowerManager.SCREEN_DIM_WAKE_LOCK
+                        or PowerManager.ON_AFTER_RELEASE
+                        or PowerManager.ACQUIRE_CAUSES_WAKEUP);
+                powerWakeLock =
+                    (getSystemService(POWER_SERVICE) as PowerManager).newWakeLock(lockLevel, TAG)
+            }
+            setPowerWakeLock(true)
+        } else {
+            powerWakeLock?.let {
+                try {
+                    setPowerWakeLock(false)
+                    it.release()
+                } catch (e: Exception) {
+                }
+            }
+            powerWakeLock = null
+        }
+    }
+
+    open fun setPowerWakeLock(acquire: Boolean) {
+        powerWakeLock?.let {
+            if (acquire) {
+                if (!it.isHeld) {
+                    try {
+                        it.acquire()
+                        warningMsg("Power wake was locked.")
+                    } catch (e: SecurityException) {
+                        errorMsg("Lock power wake failed, message: " + e.message)
+                    }
+                }
+            } else {
+                if (it.isHeld) {
+                    try {
+                        it.release()
+                        warningMsg("Power wake was unlocked.")
+                    } catch (e: SecurityException) {
+                        errorMsg("Unlock power wake failed, message: " + e.message)
+                    }
+                }
+            }
+        }
+    }
+
+    //  ==== Device Orientation ====================================================================
+    open fun lockScreenOrientation(lock: Boolean) {
+        if (DeviceUtil.isChromebookDevice(this@BaseActivity)) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            return
+        }
+
+        var orientationSetting = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+        if (lock) {
+            val orientation = resources.configuration.orientation
+            orientationSetting =
+                if (orientation == Configuration.ORIENTATION_PORTRAIT) ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                else ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        }
+
+        requestedOrientation = orientationSetting
+
+        warningMsg("Lock screen orientation: $lock")
+    }
+
+    //  ==== Toast/Dump Message ====================================================================
+    fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    fun showLongToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
     open fun verboseMsg(msg: String?) {
@@ -167,7 +315,11 @@ open class BaseActivity : AppCompatActivity() {
         }
     }
 
+    private fun getId(): Int {
+        return System.identityHashCode(this@BaseActivity)
+    }
+
     private fun lifecycleMsg(msg: String) {
-        debugMsg("Lifecycle: $msg")
+        debugMsg("Activity id: 0x" + Integer.toHexString(getId()) + ", lifecycle status: " + "$msg")
     }
 }

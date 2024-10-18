@@ -2,12 +2,26 @@ package com.example.androidapputility
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import com.example.androidapputility.databinding.ActivityLauncherBinding
 import com.example.androidapputility.testbed.DegreeRulerFragment
+import com.example.androidapputility.typedef.FileType
+import com.example.androidapputility.utility.PermissionUtil
+import com.example.androidapputility.utility.UnitTest
+import com.example.androidapputility.utility.UriUtil
+import com.example.androidapputility.utility.ZipUtil
 import com.example.androidapputility.widget.BaseDialogFragment
 import com.example.androidapputility.widget.waiting.WaitingCursorFragment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.util.zip.ZipEntry
 
 class LauncherActivity : BaseActivity() {
 
@@ -19,6 +33,21 @@ class LauncherActivity : BaseActivity() {
 
     private lateinit var binding: ActivityLauncherBinding
 
+    private val ioJob = Job()
+    private val ioCoroutineScope = CoroutineScope(Dispatchers.IO + ioJob)
+
+    override fun getContentActivityResult(uri: Uri?) {
+        uri?.let {
+//            zipFileToExternalStorageDirectory(it)
+        }
+    }
+
+    override fun getMultipleContentsActivityResult(uriList: List<Uri>?) {
+        uriList?.let {
+//            zipFileListToExternalStorageDirectory(it)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -26,6 +55,27 @@ class LauncherActivity : BaseActivity() {
         setContentView(binding.root)
 
         initUI()
+
+        PermissionUtil.requestStoragePermissionIfNeeded(
+            LauncherActivity@ this,
+            PermissionUtil.REQUEST_CODE_STORAGE_PERMISSION
+        )
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (PermissionUtil.hadStoragePermission(LauncherActivity@ this)) {
+//            showToast("Storage permission access was confirmed!")
+        } else {
+            showToast("Storage permission access was denied!")
+            return
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        ioJob.cancel()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -36,15 +86,38 @@ class LauncherActivity : BaseActivity() {
         }
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            PermissionUtil.REQUEST_CODE_STORAGE_PERMISSION -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    showToast("Storage permission access was confirmed!")
+                } else {
+                    showToast("Storage permission access was denied!")
+                }
+            }
+        }
+    }
+
     private fun initUI() {
         binding.tvToActivity.setOnClickListener {
-            //startMediaPickerActivity()
+//            startMediaPickerActivity()
         }
 
         binding.tvToFragment.setOnClickListener {
             //showBaseDialogFragment()
             //showWaitingCursorFragment()
             //showDegreeRulerFragment()
+        }
+
+        binding.tvToExecuteTask.setOnClickListener {
+//            pickFileToZip()
+//            pickFilesToZip()
+//            unzipRawFileToExternalStorageDirectory()
         }
     }
 
@@ -104,4 +177,109 @@ class LauncherActivity : BaseActivity() {
         showFragment(fragment, fragment.TAG, R.id.bottom_fragment_container)
     }
 
+    private fun pickFileToZip() {
+        getContentActivityResultLauncher.launch(FileType.IMAGE.toString())
+    }
+
+    private fun pickFilesToZip() {
+        getMultipleContentsActivityResultLauncher.launch(
+            arrayOf(
+                FileType.IMAGE.toString(),
+                FileType.VIDEO.toString()
+            )
+        )
+    }
+
+    private fun unzipRawFileToExternalStorageDirectory() {
+        ioCoroutineScope.launch {
+            val time = System.currentTimeMillis()
+            UnitTest.unzipRawFileToExternalStorageDirectory(
+                this@LauncherActivity,
+                object : ZipUtil.OnUnzipListener {
+                    override fun onPrepare(zipEntry: ZipEntry) {
+                    }
+
+                    override fun onStart() {
+                    }
+
+                    override fun onProgress(progress: Int) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            withContext(Dispatchers.Main) {
+                            }
+                        }
+                    }
+
+                    override fun onComplete() {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            withContext(Dispatchers.Main) {
+                                showToast("Unzip complete! Cost " + (System.currentTimeMillis() - time) + " ms.")
+                            }
+                        }
+                    }
+
+                    override fun onException(throwable: Throwable) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            withContext(Dispatchers.Main) {
+                            }
+                        }
+                    }
+                })
+        }
+    }
+
+    private fun zipFileToExternalStorageDirectory(uri: Uri) {
+        val file = UriUtil.toFile(this@LauncherActivity, uri)
+        file?.let {
+            val tick = System.currentTimeMillis()
+            zipFileToExternalStorageDirectory(it.absolutePath) { progress ->
+                if (progress == 100) {
+                    val costMS = System.currentTimeMillis() - tick
+                    CoroutineScope(Dispatchers.IO).launch {
+                        withContext(Dispatchers.Main) {
+                            showToast("zipFileToExternalStorageDirectory complete! cost $costMS ms.")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun zipFileToExternalStorageDirectory(path: String, listener: (Int) -> Unit) {
+        ioCoroutineScope.launch {
+            UnitTest.zipFileToExternalStorageDirectory(path, listener)
+        }
+    }
+
+    private fun zipFileListToExternalStorageDirectory(uriList: List<Uri>) {
+        val fileList = ArrayList<File>()
+        uriList.forEach {
+            val file = UriUtil.toFile(this@LauncherActivity, it)
+            file?.let {
+                fileList.add(it)
+            }
+        }
+
+        if (fileList.size > 0) {
+            val tick = System.currentTimeMillis()
+            zipFileListToExternalStorageDirectory(fileList) { progress ->
+                if (progress == 100) {
+                    val costMS = System.currentTimeMillis() - tick
+                    CoroutineScope(Dispatchers.IO).launch {
+                        withContext(Dispatchers.Main) {
+                            showToast("zipFileListToExternalStorageDirectory complete! cost $costMS ms.")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun zipFileListToExternalStorageDirectory(
+        srcFileList: List<File>,
+        listener: (Int) -> Unit
+    ) {
+        ioCoroutineScope.launch {
+            UnitTest.zipFileListToExternalStorageDirectory(srcFileList, listener)
+        }
+    }
 }

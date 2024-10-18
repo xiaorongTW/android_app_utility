@@ -2,6 +2,7 @@ package com.example.androidapputility
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import com.example.androidapputility.databinding.ActivityMediaPickerBinding
 
@@ -13,6 +14,12 @@ class MediaPickerActivity : BaseActivity() {
     }
 
     private lateinit var binding: ActivityMediaPickerBinding
+
+    override fun getContentActivityResult(uri: Uri?) {
+    }
+
+    override fun getMultipleContentsActivityResult(uriList: List<Uri>?) {
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
